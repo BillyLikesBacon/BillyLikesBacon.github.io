@@ -18,23 +18,33 @@
             var firstTab = window.open();
             firstTab.document.write(`
                 <html>
+                <head>
+                    <title>New Tab</title>
+                </head>
                 <body>
                     <h1>New Tab Opened</h1>
                     <p>This tab will open another tab every 2 seconds.</p>
                     <script>
                         function openNewTab() {
                             var nextTab = window.open();
-                            nextTab.document.write(\`
-                                <html>
-                                <body>
-                                    <h1>New Tab Opened</h1>
-                                    <p>This tab will open another tab every 2 seconds.</p>
-                                    <script>
-                                        setTimeout(openNewTab, 2000); // Call the function again after 2 seconds
-                                    <\\/script>
-                                </body>
-                                </html>
-                            \`);
+                            if (nextTab) { // Check if the popup was not blocked
+                                nextTab.document.write(\`
+                                    <html>
+                                    <head>
+                                        <title>New Tab</title>
+                                    </head>
+                                    <body>
+                                        <h1>New Tab Opened</h1>
+                                        <p>This tab will open another tab every 2 seconds.</p>
+                                        <script>
+                                            setTimeout(openNewTab, 2000); // Open another tab
+                                        <\\/script>
+                                    </body>
+                                    </html>
+                                \`);
+                            } else {
+                                alert("Popup blocked! Please allow popups for this to work.");
+                            }
                         }
                         setTimeout(openNewTab, 2000); // Start the loop after 2 seconds
                     <\\/script>
