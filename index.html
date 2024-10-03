@@ -6,27 +6,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open Infinite Tabs</title>
+    <title>Infinite Tab Opener</title>
 </head>
 <body>
 
-    <!-- Button to trigger the infinite tab loop -->
-    <button type="button" id="open-loop-btn">Click to Open Infinite Tabs</button>
+    <!-- Button to start the infinite loop -->
+    <button id="open-loop-btn">Start Infinite Loop</button>
 
     <script>
-        // Add an event listener to the button
         document.getElementById('open-loop-btn').addEventListener('click', function() {
-            // Open the first tab and pass the script to run in that new tab
+            // Open the first tab and run the loop script
             var firstTab = window.open();
             firstTab.document.write(`
                 <script>
-                    // Function to open a new tab and run the same code
-                    function openNextTab() {
+                    // Function that opens a new tab
+                    function openNewTab() {
                         var nextTab = window.open();
-                        nextTab.document.write('<script>openNextTab();<\\/script>');
+                        nextTab.document.write('<script>openNewTab();<\\/script>');
                     }
-                    // Open the next tab immediately
-                    openNextTab();
+                    // Start the infinite loop
+                    openNewTab();
                 <\\/script>
             `);
         });
@@ -34,4 +33,3 @@
 
 </body>
 </html>
-
