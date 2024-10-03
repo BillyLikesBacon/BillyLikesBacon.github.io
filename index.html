@@ -6,38 +6,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinite Tab Opener</title>
+    <title>Controlled Tab Loop</title>
 </head>
 <body>
 
-    <!-- Button to start the infinite loop -->
-    <button id="open-loop-btn">Start Infinite Loop</button>
+    <!-- Button to start the loop -->
+    <button id="open-loop-btn">Start Opening Tabs</button>
 
     <script>
         document.getElementById('open-loop-btn').addEventListener('click', function() {
-            // Open the first tab and load a script inside it
-            var firstTab = window.open('', '_blank');  // Open a blank tab first
-            firstTab.document.write(`
-                <html>
-                <body>
-                    <script>
-                        // Function that opens a new tab and loads the same script
-                        function openNextTab() {
-                            var nextTab = window.open('', '_blank');
-                            nextTab.document.write(\`
-                                <html>
-                                <body>
-                                    <script>openNextTab();<\\/script>
-                                </body>
-                                </html>
-                            \`);
-                        }
-                        // Open the next tab immediately
-                        openNextTab();
-                    <\\/script>
-                </body>
-                </html>
-            `);
+            function openNewTab() {
+                // Open a new tab
+                var newTab = window.open('', '_blank');
+                if (newTab) {  // Only if the tab was successfully created (not blocked)
+                    newTab.document.write(`
+                        <html>
+                        <body>
+                            <p>New Tab Opened! Another will open shortly...</p>
+                            <script>
+                                setTimeout(function() {
+                                    window.open('', '_blank'); // Opens another tab
+                                    setTimeout(openNewTab, 2000); // Continue the loop
+                                }, 2000);
+                            <\\/script>
+                        </body>
+                        </html>
+                    `);
+                } else {
+                    alert("Pop-up blocked! Please allow pop-ups for this to work.");
+                }
+            }
+
+            // Start the loop by opening the first tab
+            openNewTab();
         });
     </script>
 
