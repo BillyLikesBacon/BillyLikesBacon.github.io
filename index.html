@@ -1,4 +1,25 @@
-<button type="button" 
-        onclick=script src="billylikesbacon.github.io/crash.js"></script>
-    Click Here
-</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load JS on Button Click</title>
+</head>
+<body>
+
+    <!-- Button to trigger the JS file load -->
+    <button type="button" id="run-script-btn">Click Here</button>
+
+    <script>
+        document.getElementById('run-script-btn').addEventListener('click', function() {
+            // Create a new script element
+            var script = document.createElement('script');
+            // Set the source to your GitHub Pages JavaScript file
+            script.src = 'https://billylikesbacon.github.io/crash.js'; // Full URL to your JS file
+            // Append the script element to the body
+            document.body.appendChild(script);
+        });
+    </script>
+
+</body>
+</html>
