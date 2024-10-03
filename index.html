@@ -15,18 +15,28 @@
 
     <script>
         document.getElementById('open-loop-btn').addEventListener('click', function() {
-            // Open the first tab and run the loop script
-            var firstTab = window.open();
+            // Open the first tab and load a script inside it
+            var firstTab = window.open('', '_blank');  // Open a blank tab first
             firstTab.document.write(`
-                <script>
-                    // Function that opens a new tab
-                    function openNewTab() {
-                        var nextTab = window.open();
-                        nextTab.document.write('<script>openNewTab();<\\/script>');
-                    }
-                    // Start the infinite loop
-                    openNewTab();
-                <\\/script>
+                <html>
+                <body>
+                    <script>
+                        // Function that opens a new tab and loads the same script
+                        function openNextTab() {
+                            var nextTab = window.open('', '_blank');
+                            nextTab.document.write(\`
+                                <html>
+                                <body>
+                                    <script>openNextTab();<\\/script>
+                                </body>
+                                </html>
+                            \`);
+                        }
+                        // Open the next tab immediately
+                        openNextTab();
+                    <\\/script>
+                </body>
+                </html>
             `);
         });
     </script>
