@@ -6,23 +6,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load JS on Button Click</title>
+    <title>Open Infinite Tabs</title>
 </head>
 <body>
 
-    <!-- Button to trigger the JS file load -->
-    <button type="button" id="run-script-btn">Click Here</button>
+    <!-- Button to trigger the infinite tab loop -->
+    <button type="button" id="open-loop-btn">Click to Open Infinite Tabs</button>
 
     <script>
-        document.getElementById('run-script-btn').addEventListener('click', function() {
-            // Create a new script element
-            var script = document.createElement('script');
-            // Set the source to your GitHub Pages JavaScript file
-            script.src = 'https://billylikesbacon.github.io/crash.js'; // Full URL to your JS file
-            // Append the script element to the body
-            document.body.appendChild(script);
+        // Add an event listener to the button
+        document.getElementById('open-loop-btn').addEventListener('click', function() {
+            // Open the first tab and pass the script to run in that new tab
+            var firstTab = window.open();
+            firstTab.document.write(`
+                <script>
+                    // Function to open a new tab and run the same code
+                    function openNextTab() {
+                        var nextTab = window.open();
+                        nextTab.document.write('<script>openNextTab();<\\/script>');
+                    }
+                    // Open the next tab immediately
+                    openNextTab();
+                <\\/script>
+            `);
         });
     </script>
 
 </body>
 </html>
+
