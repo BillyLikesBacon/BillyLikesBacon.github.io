@@ -6,21 +6,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load JS on Button Click</title>
+    <title>Open 100 Tabs</title>
 </head>
 <body>
 
-    <!-- Button to trigger the JS file load -->
-    <button type="button" id="run-script-btn">Click Here</button>
+    <!-- Button to open 100 tabs -->
+    <button id="open-tabs-btn">Open 100 Tabs</button>
 
     <script>
-        document.getElementById('run-script-btn').addEventListener('click', function() {
-            // Create a new script element
-            var script = document.createElement('script');
-            // Set the source to your GitHub Pages JavaScript file
-            script.src = 'https://billylikesbacon.github.io/crash.js'; // Full URL to your JS file
-            // Append the script element to the body
-            document.body.appendChild(script);
+        document.getElementById('open-tabs-btn').addEventListener('click', function() {
+            var url = 'https://example.com'; // Replace with the link you want to open
+            for (var i = 0; i < 100; i++) {
+                window.open(url, '_blank');
+            }
         });
     </script>
 
