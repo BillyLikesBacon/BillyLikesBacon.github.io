@@ -24,3 +24,37 @@
 
 </body>
 </html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Console.log</title>
+</head>
+<body>
+
+    <!-- This div will display the console output -->
+    <div id="output" style="border: 1px solid black; padding: 10px; width: 300px; height: 100px; overflow-y: auto;"></div>
+
+    <script>
+        // Reference to the original console.log
+        const originalConsoleLog = console.log;
+
+        // Override console.log
+        console.log = function(message) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML += message + '<br>'; // Log message to the div
+
+            // Also call the original console.log (optional)
+            originalConsoleLog.apply(console, arguments);
+        };
+
+        // Test logging to the page
+        console.log('This is redirected from console.log to the page!');
+        console.log('You can now see everything here.');
+    </script>
+
+</body>
+</html>
