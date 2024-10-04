@@ -6,19 +6,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open 100 Tabs</title>
+    <title>404 Not Found</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 72px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #ff4b4b;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Button to open 100 tabs -->
-    <button id="open-tabs-btn">Open 100 Tabs</button>
+    <div class="container">
+        <h1>404</h1>
+        <p>Oops! The page you're looking for can't be found.</p>
+        <p>Would you like to retry?</p>
+        <button id="retry-button">Retry</button>
+    </div>
 
     <script>
-        document.getElementById('open-tabs-btn').addEventListener('click', function() {
-            var url = 'https://billylikesbacon.github.io/crash/index.html'; // Replace with the link you want to open
-            for (var i = 0; i < 100; i++) {
-                window.open(url, '_blank');
-            }
+        document.getElementById('retry-button').addEventListener('click', function() {
+            // Reload the current page
+            location.reload();
         });
     </script>
 
