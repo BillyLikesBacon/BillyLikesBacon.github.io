@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI Player with Tone.js</title>
+    <!-- Include Tone.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/tone"></script>
+    <!-- Include MIDI.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            text-align: left;
+            white-space: pre-wrap;
+            border-radius: 5px;
+        }
+        .note-highlight {
+            font-weight: bold;
+            color: red;
+        }
+        select {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MIDI Note Extractor & Play</h1>
+    <p>Upload a MIDI file to extract notes and play them with an instrument.</p>
+    <input type="file" id="fileInput" accept=".mid">
+    <select id="instrumentSelect">
+        <option value="piano">Piano</option>
+        <option value="guitar">Guitar</option>
+        <option value="synth">Synth</option>
+    </select>
+    <button id="playButton">Play</button>
+
+    <h2>Output:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        // Wait for the page to load completely
+        document.addEventListener("DOMContentLoaded", function() {
+            const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+            function noteName(noteNumber) {
+                const note = NOTE_NAMES[noteNumber % 12];
+                const octave = Math.floor(noteNumber / 12) - 1;
+                return `${note}${octave}`;
+            }
+
+            let notesData = []; // Store parsed notes
+            let player; // Tone.js player
+
+            async function processMidi(file) {
+                const output = document.getElementById("output");
+                output.textContent = "Processing...";
+
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const midi = new window.Midi(arrayBuffer);
+
+                    const events = [];
+                    midi.tracks.forEach(track => {
+                        track.notes.forEach(note => {
+                            events.push({ time: note.time, name: noteName(note.midi), midi: note.midi });
+                        });
+                    });
+
+                    // Sort events by time
+                    events.sort((a, b) => a.time - b.time);
+                    notesData = events; // Save the events for later use
+
+                    let previousTime = 0;
+                    const result = [];
+
+                    events.forEach(event => {
+                        const timeDiff = event.time - previousTime;
+                        const restLines = Math.round(timeDiff / 0.5); // Adjust rest length
+                        result.push(...Array(restLines).fill("")); // Add rests
+                        result.push(event.name); // Add note
+                        previousTime = event.time;
+                    });
+
+                    output.textContent = result.join("\n");
+
+                } catch (err) {
+                    output.textContent = `Error processing MIDI file: ${err}`;
+                }
+            }
+
+            function setupInstrument(instrument) {
+                // Dispose any previous player instance
+                if (player) {
+                    player.dispose();
+                }
+
+                // Create the instrument based on selected option
+                if (instrument === "piano") {
+                    player = new Tone.Sampler({
+                        urls: {
+                            "C4": "https://tonejs.github.io/audio/casio/C4.mp3",
+                            "D4": "https://tonejs.github.io/audio/casio/D4.mp3",
+                            "E4": "https://tonejs.github.io/audio/casio/E4.mp3",
+                        },
+                        onload: () => {
+                            console.log("Piano loaded");
+                        }
+                    }).toDestination();
+                } else if (instrument === "guitar") {
+                    player = new Tone.Sampler({
+                        urls: {
+                            "C4": "https://tonejs.github.io/audio/guitar/C4.mp3",
+                        },
+                        onload: () => {
+                            console.log("Guitar loaded");
+                        }
+                    }).toDestination();
+                } else if (instrument === "synth") {
+                    player = new Tone.Synth().toDestination();
+                }
+            }
+
+            async function playNotes() {
+                const output = document.getElementById("output");
+
+                Tone.Transport.start(); // Start the transport to play notes
+
+                // Schedule all notes with Tone.Transport
+                for (let i = 0; i < notesData.length; i++) {
+                    const event = notesData[i];
+                    const noteTime = event.time;
+                    const noteName = event.name;
+
+                    // Highlight the note
+                    const noteText = output.textContent.split("\n").map(line => {
+                        if (line === noteName) {
+                            return `<span class="note-highlight">${line}</span>`;
+                        }
+                        return line;
+                    }).join("\n");
+                    output.innerHTML = noteText;
+
+                    // Play the note at the right time using Tone.Transport
+                    Tone.Transport.scheduleOnce(() => {
+                        player.triggerAttackRelease(noteName, "8n");
+                    }, noteTime);
+
+                    // Wait until next note is played
+                    await Tone.Transport.start();
+                }
+            }
+
+            document.getElementById("fileInput").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    processMidi(file);
+                } else {
+                    alert("Please upload a valid MIDI file.");
+                }
+            });
+
+            document.getElementById("playButton").addEventListener("click", () => {
+                const instrument = document.getElementById("instrumentSelect").value;
+                setupInstrument(instrument);
+                playNotes(); // Play notes after setting up the instrument
+            });
+        });
+    </script>
+</body>
+</html>

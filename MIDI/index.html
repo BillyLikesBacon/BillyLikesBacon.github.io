@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIDI Note Extractor</title>
+    <!-- Include the @tonejs/midi library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,41 +37,48 @@
             return `${note}${octave}`;
         }
 
-        function processMidi(file) {
+        async function processMidi(file) {
             const output = document.getElementById("output");
             output.textContent = "Processing...";
-            
-            file.arrayBuffer().then(buffer => {
-                const midi = new Uint8Array(buffer);
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const midi = new window.Midi(arrayBuffer); // Ensure proper constructor usage
+
                 const events = [];
-                let currentTime = 0;
+                midi.tracks.forEach(track => {
+                    track.notes.forEach(note => {
+                        events.push({ time: note.time, name: noteName(note.midi) });
+                    });
+                });
 
-                for (let i = 0; i < midi.length; i++) {
-                    if (midi[i] === 0x90 && midi[i + 2] > 0) { // Note On
-                        const timeDelta = midi[i - 1]; // Approximate time from previous event
-                        const note = midi[i + 1];
-                        currentTime += timeDelta;
-                        events.push({ time: currentTime, note });
-                        currentTime = 0; // Reset time for next event
-                    }
-                }
+                // Sort events by time
+                events.sort((a, b) => a.time - b.time);
 
-                // Sort and format output
-                const notesWithTiming = events.map(e => ({ name: noteName(e.note), time: e.time }));
+                // Create output with rests
                 let previousTime = 0;
                 const result = [];
 
-                for (const { name, time } of notesWithTiming) {
-                    const restLines = Math.round(previousTime / 5); // Adjust divisor for rest sensitivity
+                events.forEach(event => {
+                    const timeDiff = event.time - previousTime;
+
+                    // Calculate the number of rests based on time difference
+                    const restLines = Math.round(timeDiff / 0.5);  // Adjust divisor for rests (sensitivity)
+
+                    // Add empty lines for rests before the note
                     result.push(...Array(restLines).fill(""));
-                    result.push(name);
-                    previousTime = time;
-                }
+
+                    // Add the note name
+                    result.push(event.name);
+
+                    // Update the previous time to the current event time
+                    previousTime = event.time;
+                });
 
                 output.textContent = result.join("\n");
-            }).catch(err => {
+            } catch (err) {
                 output.textContent = `Error processing MIDI file: ${err}`;
-            });
+            }
         }
 
         document.getElementById("fileInput").addEventListener("change", (e) => {
