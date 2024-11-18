@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIDI Player with Tone.js</title>
-    <!-- Include Tone.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/tone"></script>
-    <!-- Include MIDI.js library -->
+    <!-- Load Tone.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.8.35"></script>
+    <!-- Load @tonejs/midi from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
     <style>
         body {
@@ -31,146 +31,148 @@
     </style>
 </head>
 <body>
-    <h1>MIDI Note Extractor & Play</h1>
-    <p>Upload a MIDI file to extract notes and play them with an instrument.</p>
+    <h1>MIDI Note Extractor & Player</h1>
+    <p>Upload a MIDI file to extract and play the notes!</p>
+
     <input type="file" id="fileInput" accept=".mid">
     <select id="instrumentSelect">
         <option value="piano">Piano</option>
-        <option value="guitar">Guitar</option>
         <option value="synth">Synth</option>
     </select>
-    <button id="playButton">Play</button>
+    <button id="playButton" disabled>Play</button>
 
     <h2>Output:</h2>
     <pre id="output"></pre>
 
     <script>
-        // Wait for the page to load completely
-        document.addEventListener("DOMContentLoaded", function() {
-            const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        // Note mapping for MIDI to human-readable note names (C4, D#4, etc.)
+        const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-            function noteName(noteNumber) {
-                const note = NOTE_NAMES[noteNumber % 12];
-                const octave = Math.floor(noteNumber / 12) - 1;
-                return `${note}${octave}`;
-            }
+        function noteName(midiNumber) {
+            const note = NOTE_NAMES[midiNumber % 12];
+            const octave = Math.floor(midiNumber / 12) - 1;
+            return `${note}${octave}`;
+        }
 
-            let notesData = []; // Store parsed notes
-            let player; // Tone.js player
+        let notesData = [];  // To store parsed MIDI notes
+        let player;  // To store the Tone.js player
 
-            async function processMidi(file) {
-                const output = document.getElementById("output");
-                output.textContent = "Processing...";
+        async function processMidi(file) {
+            const output = document.getElementById("output");
+            output.textContent = "Processing MIDI file...";
 
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const midi = new window.Midi(arrayBuffer);
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const midi = new Midi(arrayBuffer);
 
-                    const events = [];
-                    midi.tracks.forEach(track => {
-                        track.notes.forEach(note => {
-                            events.push({ time: note.time, name: noteName(note.midi), midi: note.midi });
-                        });
+                const events = [];
+                midi.tracks.forEach(track => {
+                    track.notes.forEach(note => {
+                        events.push({ time: note.time, name: noteName(note.midi), midi: note.midi });
                     });
+                });
 
-                    // Sort events by time
-                    events.sort((a, b) => a.time - b.time);
-                    notesData = events; // Save the events for later use
+                // Sort events by time to play them sequentially
+                events.sort((a, b) => a.time - b.time);
+                notesData = events;
 
-                    let previousTime = 0;
-                    const result = [];
+                let previousTime = 0;
+                const result = [];
 
-                    events.forEach(event => {
-                        const timeDiff = event.time - previousTime;
-                        const restLines = Math.round(timeDiff / 0.5); // Adjust rest length
-                        result.push(...Array(restLines).fill("")); // Add rests
-                        result.push(event.name); // Add note
-                        previousTime = event.time;
-                    });
+                events.forEach(event => {
+                    const timeDiff = event.time - previousTime;
+                    const restLines = Math.round(timeDiff / 0.5);  // Add rests for gaps
+                    result.push(...Array(restLines).fill(""));  // Add rests
+                    result.push(event.name);  // Add the note
+                    previousTime = event.time;
+                });
 
-                    output.textContent = result.join("\n");
+                output.textContent = result.join("\n");  // Display notes
 
-                } catch (err) {
-                    output.textContent = `Error processing MIDI file: ${err}`;
-                }
+                // Enable the play button after processing is complete
+                document.getElementById("playButton").disabled = false;
+
+            } catch (err) {
+                output.textContent = `Error processing MIDI file: ${err}`;
+            }
+        }
+
+        function setupInstrument(instrument) {
+            // Dispose previous player if any
+            if (player) {
+                player.dispose();
             }
 
-            function setupInstrument(instrument) {
-                // Dispose any previous player instance
-                if (player) {
-                    player.dispose();
-                }
+            // Choose instrument based on selection
+            if (instrument === "piano") {
+                player = new Tone.Sampler({
+                    urls: {
+                        "C4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",  // New working example piano URL
+                        "D4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", 
+                        "E4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+                    },
+                    onload: () => {
+                        console.log("Piano loaded");
+                    },
+                    onerror: (err) => {
+                        console.error("Error loading piano samples: ", err);
+                    }
+                }).toDestination();
+            } else if (instrument === "synth") {
+                player = new Tone.Synth().toDestination();
+            }
+        }
 
-                // Create the instrument based on selected option
-                if (instrument === "piano") {
-                    player = new Tone.Sampler({
-                        urls: {
-                            "C4": "https://tonejs.github.io/audio/casio/C4.mp3",
-                            "D4": "https://tonejs.github.io/audio/casio/D4.mp3",
-                            "E4": "https://tonejs.github.io/audio/casio/E4.mp3",
-                        },
-                        onload: () => {
-                            console.log("Piano loaded");
-                        }
-                    }).toDestination();
-                } else if (instrument === "guitar") {
-                    player = new Tone.Sampler({
-                        urls: {
-                            "C4": "https://tonejs.github.io/audio/guitar/C4.mp3",
-                        },
-                        onload: () => {
-                            console.log("Guitar loaded");
-                        }
-                    }).toDestination();
-                } else if (instrument === "synth") {
-                    player = new Tone.Synth().toDestination();
-                }
+        async function playNotes() {
+            const output = document.getElementById("output");
+            Tone.Transport.start();  // Start the Tone.js transport
+
+            // Check if samples are loaded before proceeding to play
+            if (!player || !player.loaded) {
+                alert("Sound samples are not loaded yet.");
+                return;
             }
 
-            async function playNotes() {
-                const output = document.getElementById("output");
+            // Iterate over the events and schedule them in Tone.Transport
+            for (let i = 0; i < notesData.length; i++) {
+                const event = notesData[i];
+                const noteTime = event.time;  // When the note should play
+                const noteName = event.name;  // Note name (C4, D#5, etc.)
 
-                Tone.Transport.start(); // Start the transport to play notes
+                // Highlight the current note in the output
+                const noteText = output.textContent.split("\n").map(line => {
+                    if (line === noteName) {
+                        return `<span class="note-highlight">${line}</span>`;
+                    }
+                    return line;
+                }).join("\n");
+                output.innerHTML = noteText;
 
-                // Schedule all notes with Tone.Transport
-                for (let i = 0; i < notesData.length; i++) {
-                    const event = notesData[i];
-                    const noteTime = event.time;
-                    const noteName = event.name;
-
-                    // Highlight the note
-                    const noteText = output.textContent.split("\n").map(line => {
-                        if (line === noteName) {
-                            return `<span class="note-highlight">${line}</span>`;
-                        }
-                        return line;
-                    }).join("\n");
-                    output.innerHTML = noteText;
-
-                    // Play the note at the right time using Tone.Transport
-                    Tone.Transport.scheduleOnce(() => {
-                        player.triggerAttackRelease(noteName, "8n");
-                    }, noteTime);
-
-                    // Wait until next note is played
-                    await Tone.Transport.start();
-                }
+                // Play the note using Tone.js
+                Tone.Transport.scheduleOnce(() => {
+                    player.triggerAttackRelease(noteName, "8n");
+                }, noteTime);
             }
 
-            document.getElementById("fileInput").addEventListener("change", (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    processMidi(file);
-                } else {
-                    alert("Please upload a valid MIDI file.");
-                }
-            });
+            // Start the transport to play the notes
+            Tone.Transport.start();
+        }
 
-            document.getElementById("playButton").addEventListener("click", () => {
-                const instrument = document.getElementById("instrumentSelect").value;
-                setupInstrument(instrument);
-                playNotes(); // Play notes after setting up the instrument
-            });
+        // File input event listener
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processMidi(file);  // Process the uploaded MIDI file
+            } else {
+                alert("Please upload a valid MIDI file.");
+            }
+        });
+
+        // Play button event listener
+        document.getElementById("playButton").addEventListener("click", () => {
+            const instrument = document.getElementById("instrumentSelect").value;
+            setupInstrument(instrument);  // Set up the selected instrument
+            playNotes();  // Start playing the notes
         });
     </script>
 </body>
