@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI Note Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            text-align: left;
+            white-space: pre-wrap;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MIDI Note Extractor</h1>
+    <p>Upload a MIDI file to extract notes and rests.</p>
+    <input type="file" id="fileInput" accept=".mid">
+    <h2>Output:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        function noteName(noteNumber) {
+            const note = NOTE_NAMES[noteNumber % 12];
+            const octave = Math.floor(noteNumber / 12) - 1;
+            return `${note}${octave}`;
+        }
+
+        function processMidi(file) {
+            const output = document.getElementById("output");
+            output.textContent = "Processing...";
+            
+            file.arrayBuffer().then(buffer => {
+                const midi = new Uint8Array(buffer);
+                const events = [];
+                let currentTime = 0;
+
+                for (let i = 0; i < midi.length; i++) {
+                    if (midi[i] === 0x90 && midi[i + 2] > 0) { // Note On
+                        const timeDelta = midi[i - 1]; // Approximate time from previous event
+                        const note = midi[i + 1];
+                        currentTime += timeDelta;
+                        events.push({ time: currentTime, note });
+                        currentTime = 0; // Reset time for next event
+                    }
+                }
+
+                // Sort and format output
+                const notesWithTiming = events.map(e => ({ name: noteName(e.note), time: e.time }));
+                let previousTime = 0;
+                const result = [];
+
+                for (const { name, time } of notesWithTiming) {
+                    const restLines = Math.round(previousTime / 5); // Adjust divisor for rest sensitivity
+                    result.push(...Array(restLines).fill(""));
+                    result.push(name);
+                    previousTime = time;
+                }
+
+                output.textContent = result.join("\n");
+            }).catch(err => {
+                output.textContent = `Error processing MIDI file: ${err}`;
+            });
+        }
+
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processMidi(file);
+            } else {
+                alert("Please upload a valid MIDI file.");
+            }
+        });
+    </script>
+</body>
+</html>
