@@ -36,8 +36,8 @@
 
     <input type="file" id="fileInput" accept=".mid">
     <select id="instrumentSelect">
-        <option value="piano">Piano</option>
         <option value="synth">Synth</option>
+        <option value="membrane">Membrane</option>
     </select>
     <button id="playButton" disabled>Play</button>
 
@@ -104,27 +104,19 @@
             }
 
             // Choose instrument based on selection
-            if (instrument === "piano") {
-                player = new Tone.Sampler({
-                    urls: {
-                        "C4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",  // New working example piano URL
-                        "D4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", 
-                        "E4": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-                    },
-                    onload: () => {
-                        console.log("Piano loaded");
-                    },
-                    onerror: (err) => {
-                        console.error("Error loading piano samples: ", err);
-                    }
-                }).toDestination();
-            } else if (instrument === "synth") {
-                player = new Tone.Synth().toDestination();
+            if (instrument === "synth") {
+                player = new Tone.Synth().toDestination();  // Simple synth sound
+            } else if (instrument === "membrane") {
+                player = new Tone.MembraneSynth().toDestination();  // Membrane sound
             }
         }
 
         async function playNotes() {
             const output = document.getElementById("output");
+
+            // Ensure the AudioContext starts after user interaction
+            await Tone.start();  // Start Tone.js audio context after user interaction
+
             Tone.Transport.start();  // Start the Tone.js transport
 
             // Check if samples are loaded before proceeding to play
@@ -169,7 +161,9 @@
         });
 
         // Play button event listener
-        document.getElementById("playButton").addEventListener("click", () => {
+        document.getElementById("playButton").addEventListener("click", async () => {
+            // Ensure Tone.js starts after user interaction
+            await Tone.start();  // Start Tone.js AudioContext on Play button click
             const instrument = document.getElementById("instrumentSelect").value;
             setupInstrument(instrument);  // Set up the selected instrument
             playNotes();  // Start playing the notes
